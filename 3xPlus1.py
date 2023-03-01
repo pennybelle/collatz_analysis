@@ -191,7 +191,6 @@ print(nl * 2)
 
 while True:
     # game loop
-    clear()
     x = int(y + 1)
     new_value = str(space * 21 + "\033[0;30;43m" + nv + cr + nl + space * 21 + nv_color + str(int(x)) + nl)
     print(new_value)
