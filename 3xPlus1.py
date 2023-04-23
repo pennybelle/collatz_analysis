@@ -12,7 +12,7 @@ def clear(): system('cls' if name == 'nt' else 'clear')
 def start():
     if not file_check():
         record = open(log, 'w+')
-        record.writelines(['0\n0'])
+        record.writelines(['Best Seed: 0\nHighscore: 0'])
         record.close()
     print('\n' * 7)
     print(r'''
@@ -44,14 +44,14 @@ def start():
     system(size)
 
 def game(x):
-    score = int(0)
+    current_score = int(0)  # ingame highscore, starts at 0 unless highscore is greater
     record = open(log, 'r')
-    highscore = int(record.readlines()[1])
+    highscore = int(record.readlines()[1][10:])  # highscore in log file (2nd line)
+    steps = int(0)  # steps it takes for x to get to 1
+    loses = int(1)  # game over tracker to tease the player with # of losses lol
+    delay = float(5)  # delay is reduced each game until cache_max is fulfilled
     cache = int(0)
     cache_max = int(50)
-    steps = int(0)
-    loses = int(1)
-    delay = float(5)
     new_color = '\033[0;30;43m'
     color_reset = '\033[0;37;40m'
     box_color = '\033[0;30;47m'
@@ -59,8 +59,8 @@ def game(x):
     red_box = '\033[0;37;41m'
     green_text = '\033[1;32;40m'
     red_text = '\033[1;31;40m'
-    box = ' ' * 11
-    x = int(x)
+    box = ' ' * 11  # game over box borders (top and bottom)
+    x = int(x)  # convert input x to int
     while True:
         new_value = x
         print(f'''                     {new_color}New Value: {color_reset}
@@ -75,8 +75,16 @@ def game(x):
                 print(f'{green_box}  {color_reset} {steps}\t\b{green_text}{x}{color_reset}')
             if cache < cache_max:
                 time.sleep(delay * .01)
-        if steps > score:  # if current score is higher than recorded score, update recorded to current
-            score = steps
+        if steps > current_score:  # if current score is higher than recorded score, update recorded to current
+            current_score = steps
+        if highscore > current_score:
+            current_score = highscore
+        elif highscore < current_score:  # else set score as new highscore in log file (TODO - needs fixing)
+            highscore = current_score  # this line is needed to prevent log file from giving incorrect seed #
+            record.close()
+            record = open(log, 'w')
+            record.writelines([f'Best Seed: {new_value}\nHighscore: {current_score}'])
+        record.close()
         # game over screen
         print(f'''
                      {box_color}{box}{color_reset}
@@ -88,7 +96,7 @@ def game(x):
                      {box_color}Loses:     {color_reset}
                      {loses}
                      {box_color}High Score:{color_reset}
-                     {score}\n''')
+                     {current_score}\n''')
         x = new_value + 1  # add 1 to previous input/new value to progress the game to next number
         loses += 1  # records losses in the session, displays them in the game over screen
         steps = int(0)  # reset current score for new game
@@ -97,13 +105,6 @@ def game(x):
             delay -= 0.1
             cache += 1
         clear()
-        # TODO - fix so if False this block is skipped
-        if score > highscore:  # record new highscore if greater than highscore in log file
-            record.close()
-            record = open(log, 'w')
-            record.writelines([f'{new_value} (this is supposed to be the seed that gave the highscore but it doesnt work rn)\n{score}'])
-            record.close()
-            record = open(log, 'r')
 
 
 start()
